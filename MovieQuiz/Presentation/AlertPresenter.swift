@@ -25,8 +25,5 @@ class AlertPresenter: AlertPresenterProtocol {
         })
         viewController.present(alert, animated: true, completion: nil)
     }
-    
-    func restartGame() {
-    }
 }
     

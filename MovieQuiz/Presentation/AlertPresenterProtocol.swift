@@ -9,6 +9,5 @@ import UIKit
 
 protocol AlertPresenterProtocol {
     func show(in viewController: UIViewController, model: AlertModel)
-    func restartGame()
     func makeResultsMessage(correctAnswers: Int, totalQuestions: Int, gamesCount: Int, bestGame: GameResult, totalAccuracy: Double) -> String
 }
