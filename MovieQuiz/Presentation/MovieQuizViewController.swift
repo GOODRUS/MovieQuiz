@@ -48,20 +48,26 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
     }
     
     private func showNetworkError(message: String) {
-        hideLoadingIndicator()
-        
-        let model = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз") { [weak self] in
-            guard let self = self else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.presentedViewController == nil else { return }
             
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-            
-            self.questionFactory?.requestNextQuestion()
+            self.showAlert(title: "Ошибка", message: message) { [weak self] in
+                guard let self = self else { return }
+                self.showLoadingIndicator()
+                DispatchQueue.main.async {
+                    self.questionFactory?.loadData()
+                }
+            }
         }
-        
-        alertPresenter.show(in: self, model: model)
+    }
+    
+    private func showAlert(title: String, message: String, retryAction: @escaping () -> Void) {
+        guard self.presentedViewController == nil else { return }
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Попробовать еще раз", style: .default) { _ in
+            retryAction()
+        })
+        self.present(alert, animated: true, completion: nil)
     }
     
     func didFailToLoadData(with error: Error) {
@@ -260,4 +266,4 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate  
  Настоящий рейтинг: 5,8
  Вопрос: Рейтинг этого фильма больше чем 6?
  Ответ: НЕТ
-*/
+ */

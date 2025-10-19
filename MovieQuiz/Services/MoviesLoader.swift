@@ -7,6 +7,17 @@
 
 import Foundation
 
+enum MoviesLoadingError: Error, LocalizedError {
+    case apiError(message: String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .apiError(let message):
+            return message
+        }
+    }
+}
+
 protocol MoviesLoading {
     func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void)
 }
@@ -17,7 +28,7 @@ struct MoviesLoader: MoviesLoading {
     
     // MARK: - URL
     private var mostPopularMoviesUrl: URL {
-        guard let url = URL(string: "https://tv-api.com/en/API/Top250Movies/k_g7i9nnmv") else {
+        guard let url = URL(string: "https://tv-api.com/en/API/Top250Movies/k_zcuw1ytf") else { //k_zcuw1ytf/k_g7i9nnmv
             preconditionFailure("Unable to construct mostPopularMoviesUrl")
         }
         return url
@@ -29,7 +40,11 @@ struct MoviesLoader: MoviesLoading {
             case .success(let data):
                 do {
                     let mostPopularMovies = try JSONDecoder().decode(MostPopularMovies.self, from: data)
-                    handler(.success(mostPopularMovies))
+                    if let errorMsg = mostPopularMovies.errorMessage, !errorMsg.isEmpty {
+                        handler(.failure(MoviesLoadingError.apiError(message: errorMsg)))
+                    } else {
+                        handler(.success(mostPopularMovies))
+                    }
                 } catch {
                     handler(.failure(error))
                 }
