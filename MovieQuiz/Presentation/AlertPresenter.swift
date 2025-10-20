@@ -20,6 +20,7 @@ class AlertPresenter: AlertPresenterProtocol {
     
     func show(in viewController: UIViewController, model: AlertModel) {
         let alert = UIAlertController(title: model.title, message: model.message, preferredStyle: .alert)
+        alert.view.accessibilityIdentifier = "Game results"
         alert.addAction(UIAlertAction(title: model.buttonText, style: .default) { _ in
             model.completion()
         })
