@@ -9,50 +9,74 @@ import XCTest
 
 final class MovieQuizUITests: XCTestCase {
     
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        app = XCUIApplication()
+        app.launch()
+        continueAfterFailure = false
+    }
+
+    override func tearDownWithError() throws {
+        try super.tearDownWithError()
+        app.terminate()
+        app = nil
+    }
+
     func testYesButton() {
-        sleep(3)
-        
-        let firstPoster = app.images["Poster"]
-        let firstPosterData = firstPoster.screenshot().pngRepresentation
-        
-        app.buttons["Yes"].tap()
-        sleep(3)
-        
-        let secondPoster = app.images["Poster"]
-        let secondPosterData = secondPoster.screenshot().pngRepresentation
-        
+        let poster = app.images["Poster"]
         let indexLabel = app.staticTexts["Index"]
         
-        XCTAssertNotEqual(firstPosterData, secondPosterData)
+        XCTAssertTrue(poster.waitForExistence(timeout: 5), "Постер не появился")
+        XCTAssertTrue(indexLabel.waitForExistence(timeout: 5), "Индекс не появился")
+        
+        let firstPosterData = poster.screenshot().pngRepresentation
+        
+        app.buttons["Yes"].tap()
+        
+        XCTAssertTrue(indexLabel.waitForExistence(timeout: 5))
         XCTAssertEqual(indexLabel.label, "2/10")
+        
+        XCTAssertTrue(poster.waitForExistence(timeout: 5))
+        let secondPosterData = poster.screenshot().pngRepresentation
+        
+        XCTAssertNotEqual(firstPosterData, secondPosterData)
     }
     
     func testNoButton() {
-        sleep(3)
+        let poster = app.images["Poster"]
+        let indexLabel = app.staticTexts["Index"]
         
-        let firstPoster = app.images["Poster"]
-        let firstPosterData = firstPoster.screenshot().pngRepresentation
+        XCTAssertTrue(poster.waitForExistence(timeout: 5), "Постер не появился")
+        XCTAssertTrue(indexLabel.waitForExistence(timeout: 5), "Индекс не появился")
+        
+        let firstPosterData = poster.screenshot().pngRepresentation
         
         app.buttons["No"].tap()
-        sleep(3)
         
-        let secondPoster = app.images["Poster"]
-        let secondPosterData = secondPoster.screenshot().pngRepresentation
-
-        let indexLabel = app.staticTexts["Index"]
-       
-        XCTAssertNotEqual(firstPosterData, secondPosterData)
+        XCTAssertTrue(indexLabel.waitForExistence(timeout: 5))
         XCTAssertEqual(indexLabel.label, "2/10")
+        
+        XCTAssertTrue(poster.waitForExistence(timeout: 5))
+        let secondPosterData = poster.screenshot().pngRepresentation
+        
+        XCTAssertNotEqual(firstPosterData, secondPosterData)
     }
     
     func testGameFinish() {
-        sleep(2)
-        for _ in 1...10 {
+        let indexLabel = app.staticTexts["Index"]
+        XCTAssertTrue(indexLabel.waitForExistence(timeout: 5), "Индекс не появился")
+        
+        for i in 1...10 {
             app.buttons["No"].tap()
-            sleep(2)
-        }
 
-        // Проверка
+            if i < 10 {
+                XCTAssertTrue(indexLabel.waitForExistence(timeout: 5))
+                XCTAssertEqual(indexLabel.label, "\(i+1)/10")
+            }
+        }
+        
         let alert = app.alerts["Game results"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5), "Алерт 'Game results' не появился")
         XCTAssertEqual(alert.label, "Этот раунд окончен!")
@@ -60,39 +84,21 @@ final class MovieQuizUITests: XCTestCase {
     }
 
     func testAlertDismiss() {
-        sleep(2)
+        let indexLabel = app.staticTexts["Index"]
+        XCTAssertTrue(indexLabel.waitForExistence(timeout: 5), "Индекс не появился")
+        
         for _ in 1...10 {
             app.buttons["No"].tap()
-            sleep(2)
+            XCTAssertTrue(indexLabel.waitForExistence(timeout: 5))
         }
 
         let alert = app.alerts["Game results"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5), "Алерт 'Game results' не появился")
         alert.buttons.firstMatch.tap()
-
-        sleep(2)
-
-        let indexLabel = app.staticTexts["Index"]
-        XCTAssertFalse(alert.exists, "Алерт все еще отображается")
+        
+        XCTAssertFalse(alert.waitForExistence(timeout: 2), "Алерт все еще отображается")
+        XCTAssertTrue(indexLabel.waitForExistence(timeout: 5))
         XCTAssertEqual(indexLabel.label, "1/10")
-    }
-    
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        
-        app = XCUIApplication()
-        app.launch()
-        
-        continueAfterFailure = false
-    }
-
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-        
-        app.terminate()
-        app = nil
     }
 
     @MainActor
