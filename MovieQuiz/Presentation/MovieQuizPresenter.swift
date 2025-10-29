@@ -8,7 +8,7 @@
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
-    private let statisticService: StatisticServiceProtocol!
+    private let statisticService: StatisticServiceProtocol
     private var questionFactory: QuestionFactoryProtocol?
     private weak var viewController: MovieQuizViewControllerProtocol?
     
@@ -23,7 +23,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         questionFactory?.loadData()
     }
     
-    init(viewController: MovieQuizViewControllerProtocol) {
+    init(viewController: MovieQuizViewControllerProtocol, statisticService: StatisticServiceProtocol = StatisticService()) {
         self.viewController = viewController
         self.statisticService = StatisticService()
         self.questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
@@ -88,6 +88,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     func noButtonClicked() {
         didAnswer(isYes: false)
+    }
+    
+    func didFailToLoadImage() {
+        viewController?.showImageLoadError()
     }
     
     private func didAnswer(isYes: Bool) {

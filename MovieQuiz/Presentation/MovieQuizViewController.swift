@@ -15,21 +15,30 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+    
         presenter = MovieQuizPresenter(viewController: self)
         
         imageView.layer.cornerRadius = 20
+    }
+    
+    private func setButtonsEnabled(_ isEnabled: Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
     }
     
     // MARK: - Actions
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         
+        setButtonsEnabled(false)
+        showLoadingIndicator()
         presenter.yesButtonClicked()
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         
+        setButtonsEnabled(false)
+        showLoadingIndicator()
         presenter.noButtonClicked()
     }
     
@@ -37,10 +46,12 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     
     func show(quiz step: QuizStepViewModel) {
         
+        hideLoadingIndicator()
         imageView.layer.borderColor = UIColor.clear.cgColor
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
+        setButtonsEnabled(true)
     }
     
     func show(quiz result: QuizResultsViewModel) {
@@ -51,7 +62,8 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
             title: result.title,
             message: message,
             preferredStyle: .alert)
-        alert.view.accessibilityIdentifier = "Game results"
+        alert.view.accessibilityIdentifier = AccessibilityIdentifiers.gameResultsAlert
+
         
         let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
             guard let self = self else { return }
@@ -77,6 +89,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     
     func hideLoadingIndicator() {
         activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
     }
     
     func showNetworkError(message: String) {
@@ -85,13 +98,26 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
             title: "Ошибка",
             message: message,
             preferredStyle: .alert)
-        alert.view.accessibilityIdentifier = "Network Error"
+        alert.view.accessibilityIdentifier = AccessibilityIdentifiers.networkErrorAlert
         let retryAction = UIAlertAction(title: "Попробовать ещё раз", style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.showLoadingIndicator()
             self.presenter.reloadData()
         }
         alert.addAction(retryAction)
+        present(alert, animated: true)
+    }
+    
+    func showImageLoadError() {
+        hideLoadingIndicator()
+        let alert = UIAlertController(
+            title: "Ошибка",
+            message: "Не удалось загрузить изображение.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "ОК", style: .default) { [weak self] _ in
+            self?.presenter.reloadData()
+        })
         present(alert, animated: true)
     }
 }

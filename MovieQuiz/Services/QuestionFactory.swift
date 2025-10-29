@@ -7,7 +7,7 @@
 
 import Foundation
 
-class QuestionFactory: QuestionFactoryProtocol {
+final class QuestionFactory: QuestionFactoryProtocol {
     private let moviesLoader: MoviesLoading
     private weak var delegate: QuestionFactoryDelegate?
     
@@ -45,8 +45,11 @@ class QuestionFactory: QuestionFactoryProtocol {
             do {
                 imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
-                print("Failed to load image")
-            }
+                DispatchQueue.main.async { [weak self] in
+                                self?.delegate?.didFailToLoadImage()
+                            }
+                            return
+                        }
             
             let rating = Float(movie.rating) ?? 0
             
